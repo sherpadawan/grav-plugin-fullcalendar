@@ -88,40 +88,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* methods */
 
-    /*
-    eventDidMount: function(info) {
-          let tooltip = document.createElement('div');
-          tooltip.className = 'tooltip';
-          tooltip.setAttribute('role', 'tooltip');
-          tooltip.innerHTML = info.event.title + ' ' + info.event.description;
-          info.el.appendChild(tooltip);
-       },
-    */
     eventDidMount: function(info) { 
+      if (!GRAV_PLUGIN_CONFIG.tooltip) {
+        return;
+      }
+      let tooltipContent = [];
+      let description = info.event.extendedProps.description
+      if (description) {  
+        tooltipContent.push(description.split("\n").join("<br />"));
+      }
+      let location = info.event.extendedProps.location;
+      if (location) {
+        tooltipContent.push(location);
+      }
       let tooltip = document.createElement('div');
-          tooltip.className = 'tooltip';
-          tooltip.setAttribute('role', 'tooltip');
-          tooltip.innerHTML = info.event.extendedProps.description;
-          info.el.appendChild(tooltip);
+      tooltip.className = 'tooltip';
+      tooltip.setAttribute('role', 'tooltip');
+      tooltip.innerHTML = tooltipContent.join('<br />');
+      info.el.appendChild(tooltip);
       let button = document.createElement('button');
-          button.className = 'button';
-          button.style.display = 'none';
-          button.setAttribute('role', 'button');
-          info.el.appendChild(button);
-
-      createPopper(tooltip, button, {
+      button.className = 'button';
+      button.style.display = 'none';
+      button.setAttribute('role', 'button');
+      info.el.appendChild(button);
+     
+      /*
+       createPopper(tooltip, button, {
               title: info.event.extendedProps.description,
-              placement: 'top',
+              placement: 'right',
               trigger: 'hover',
-              container: 'body'
             });
-    },
-    eventClick: function(info) {
-      info.jsEvent.preventDefault();
-      //createPopper(info.el, info.el.getElementsByClassName('tooltip')[0], { placement: 'right' });
-      //console.log('Event: ' + info.event.title + 'location:' + info.event.location);
-      //let tooltip = info.el.getElementsByClassName('tooltip')[0];
-      //createPopper(info.el, tooltip, { placement: 'right' });
+            */
     },
 
     events: function(info, successCallback, failureCallback) {
@@ -187,11 +184,11 @@ document.addEventListener('DOMContentLoaded', function() {
           //occurences
           let mappedOccurrences = events.occurrences.map( function(o) { 
             let cpt = o.item.component;
+            console.log(o);
             let occ = { 
               start: o.startDate.toJSDate(),
               end: o.endDate.toJSDate(),
               title: o.item.summary, 
-              location: o.location,
               uid: o.uid,
               extendedProps : {
                 description: cpt.getFirstPropertyValue("description"),
