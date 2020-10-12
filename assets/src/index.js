@@ -13,7 +13,7 @@ require('@popperjs/core');
 require('ismobilejs');
 
 import isMobile from 'ismobilejs';
-import {createPopper} from '@popperjs/core';
+import { createPopper } from '@popperjs/core';
 import superagent from 'superagent';
 import store from 'store2';
 import { Calendar } from '@fullcalendar/core';
@@ -88,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* methods */
 
+    /*
     eventDidMount: function(info) {
           let tooltip = document.createElement('div');
           tooltip.className = 'tooltip';
@@ -95,13 +96,32 @@ document.addEventListener('DOMContentLoaded', function() {
           tooltip.innerHTML = info.event.title + ' ' + info.event.description;
           info.el.appendChild(tooltip);
        },
+    */
+    eventDidMount: function(info) { 
+      let tooltip = document.createElement('div');
+          tooltip.className = 'tooltip';
+          tooltip.setAttribute('role', 'tooltip');
+          tooltip.innerHTML = info.event.extendedProps.description;
+          info.el.appendChild(tooltip);
+      let button = document.createElement('button');
+          button.className = 'button';
+          button.style.display = 'none';
+          button.setAttribute('role', 'button');
+          info.el.appendChild(button);
 
+      createPopper(tooltip, button, {
+              title: info.event.extendedProps.description,
+              placement: 'top',
+              trigger: 'hover',
+              container: 'body'
+            });
+    },
     eventClick: function(info) {
       info.jsEvent.preventDefault();
       //createPopper(info.el, info.el.getElementsByClassName('tooltip')[0], { placement: 'right' });
       //console.log('Event: ' + info.event.title + 'location:' + info.event.location);
-      let tooltip = info.el.getElementsByClassName('tooltip')[0];
-      createPopper(info.el, tooltip, { placement: 'right' });
+      //let tooltip = info.el.getElementsByClassName('tooltip')[0];
+      //createPopper(info.el, tooltip, { placement: 'right' });
     },
 
     events: function(info, successCallback, failureCallback) {
@@ -149,30 +169,40 @@ document.addEventListener('DOMContentLoaded', function() {
           let data = new String(result.text);
           const icalExpander = new IcalExpander({ ics:data, maxIterations: 100});
           let events = icalExpander.all();
+          //events
           let  mappedEvents = events.events.map(e => (
             { 
               start: e.startDate.toJSDate(), 
               end: e.endDate.toJSDate(),
-              location: e.location,
               title: e.summary,
               uid: e.uid,
-              description: e.description,
-							url: e.url,
-              color: calendarConfig.color
+              url: e.url,
+              color: calendarConfig.color,
+              extendedProps : {
+                description: e.description,
+                location: e.location,
+              },
             })
           );
-          let mappedOccurrences = events.occurrences.map(o => (
-            { 
+          //occurences
+          let mappedOccurrences = events.occurrences.map( function(o) { 
+            let cpt = o.item.component;
+            let occ = { 
               start: o.startDate.toJSDate(),
               end: o.endDate.toJSDate(),
               title: o.item.summary, 
               location: o.location,
               uid: o.uid,
-              description: o.description,
-							url: o.url,
-              color: calendarConfig.color
-            })
-          );
+              extendedProps : {
+                description: cpt.getFirstPropertyValue("description"),
+                location: cpt.getFirstPropertyValue("location"),
+              },
+              url: o.url,
+              color: calendarConfig.color,
+            }
+            return occ;
+          });
+
           events = [].concat(mappedEvents, mappedOccurrences);
           allevents = allevents.concat(events);
 
