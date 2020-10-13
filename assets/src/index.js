@@ -184,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
           //occurences
           let mappedOccurrences = events.occurrences.map( function(o) { 
             let cpt = o.item.component;
-            console.log(o);
             let occ = { 
               start: o.startDate.toJSDate(),
               end: o.endDate.toJSDate(),
